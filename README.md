@@ -7,6 +7,7 @@ Internal staging portal for LuminaTech development workflows. This repository co
 - **Core**: Flask-based microservice.
 - **Monitoring**: Integrated request auditing (`services/guard.py`).
 - **Telemetry**: Real-time system stat generation (`services/generator.py`).
+- **Deception**: High-fidelity 0-day emulation for **9router v0.3.47** (CVE-2026-5842).
 
 ## Quick Start
 
