@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internal Debug Console | Wizards Honey</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body style="background: #000; color: #fff; font-family: monospace; padding: 2rem;">
+    <div style="border: 1px solid #333; border-radius: 8px; overflow: hidden;">
+        <div style="background: #222; padding: 0.5rem 1rem; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 10px;">
+            <div style="display: flex; gap: 5px;">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: #ff5f56;"></div>
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: #ffbd2e;"></div>
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: #27c93f;"></div>
+            </div>
+            <span style="font-size: 0.8rem; color: #666;">staging-srv-04 — -bash — 80x24</span>
+        </div>
+        <div id="terminal-output" style="padding: 1rem; height: 500px; overflow-y: auto; font-size: 0.9rem;">
+            <div>Welcome to LuminaTech High-Availability Debug Console (v4.1)</div>
+            <div>[WARNING] This session is private. Unauthorized access is prohibited.</div>
+            <br>
+            <div id="output-area"></div>
+            <div style="display: flex; gap: 8px;">
+                <span class="prompt">root@staging-srv-04:~#</span>
+                <input type="text" id="cmd-input" autofocus style="background: transparent; border: none; color: #fff; outline: none; width: 100%; font-family: inherit; font-size: inherit;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('cmd-input');
+        const output = document.getElementById('output-area');
+
+        input.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                const cmd = input.value;
+                input.value = '';
+                
+                // Add to output
+                const line = document.createElement('div');
+                line.innerHTML = `<span class="prompt">root@staging-srv-04:~#</span> ${cmd}`;
+                output.appendChild(line);
+
+                if (cmd === 'clear') {
+                    output.innerHTML = '';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/v1/terminal/execute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ command: cmd })
+                    });
+                    const data = await response.json();
+                    
+                    const result = document.createElement('div');
+                    result.style.color = '#ccc';
+                    result.style.whiteSpace = 'pre-wrap';
+                    result.textContent = data.output;
+                    output.appendChild(result);
+                    output.appendChild(document.createElement('br'));
+                } catch (err) {
+                    const errorLine = document.createElement('div');
+                    errorLine.style.color = 'var(--danger)';
+                    errorLine.textContent = 'Connection timeout. Check VPN status.';
+                    output.appendChild(errorLine);
+                }
+                
+                document.getElementById('terminal-output').scrollTop = document.getElementById('terminal-output').scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>

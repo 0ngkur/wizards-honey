@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staging Dashboard | LuminaTech</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span style="font-size: 1.5rem;">⚡</span> WIZARD PORTAL <span class="badge badge-staging">STAGING</span>
+            </div>
+            <div style="font-size: 0.9rem; color: var(--text-secondary);">
+                Logged in as: <strong>admin_user</strong> | <a href="#" style="color: var(--danger);">Logout</a>
+            </div>
+        </header>
+
+        <div class="grid">
+            <div class="glass-panel stat-card">
+                <span class="badge" style="background: rgba(56, 189, 248, 0.2); color: var(--accent-color); align-self: flex-start;">CPU Usage</span>
+                <div class="stat-value">{{ stats.cpu_usage }}</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Load Average: 0.45, 0.52, 0.48</div>
+            </div>
+            <div class="glass-panel stat-card">
+                <span class="badge" style="background: rgba(63, 185, 80, 0.2); color: var(--success); align-self: flex-start;">Memory</span>
+                <div class="stat-value">{{ stats.ram_usage }}</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Cached: 1.2 GB</div>
+            </div>
+            <div class="glass-panel stat-card">
+                <span class="badge" style="background: rgba(248, 81, 73, 0.2); color: var(--danger); align-self: flex-start;">Active Threats</span>
+                <div class="stat-value">0</div>
+                <div style="font-size: 0.8rem; color: var(--success);">Sentinel Shield: ACTIVE</div>
+            </div>
+        </div>
+
+        <div class="glass-panel" style="margin-top: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="font-weight: 800;">Real-time System Logs</h3>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">Polling interval: 5s</span>
+            </div>
+            <div class="log-container" id="log-box">
+                {% for log in logs %}
+                <div>{{ log }}</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+            <a href="/admin/terminal" style="text-decoration: none;">
+                <button style="background: var(--danger); color: #fff;">Emergency Debug Console</button>
+            </a>
+            <button style="background: #30363d; color: #fff;">Rebuild Assets</button>
+        </div>
+    </div>
+
+    <script>
+        // Simple script to simulate "Real-time" polling
+        setInterval(async () => {
+            const res = await fetch('/api/v1/system/status');
+            const data = await res.json();
+            // Update stats logic could go here to make it even more legit
+        }, 5000);
+    </script>
+</body>
+</html>
