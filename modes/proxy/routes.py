@@ -6,6 +6,7 @@ proxy_bp = Blueprint('proxy', __name__)
 
 @proxy_bp.route('/api/auth/status')
 def router_auth_status():
+    """Vulnerable endpoint for CVE-2026-5842 emulation."""
     return jsonify({
         "authenticated": False,
         "mode": "proxy-only",
@@ -15,19 +16,39 @@ def router_auth_status():
 
 @proxy_bp.route('/api/config')
 def router_config():
-    env = DataGenerator.get_fake_env().split('\n')
+    """Bait configuration file leakage with honey-data."""
     return jsonify({
         "providers": [
-            {"name": "openai", "key": "sk-proj-wizard-" + env[0].split('=')[1], "models": ["gpt-4o"]},
-            {"name": "anthropic", "key": "sk-ant-wizard-" + env[1].split('=')[1], "models": ["claude-3-5"]}
-        ]
+            {
+                "name": "openai",
+                "key": "sk-proj-wizard-" + DataGenerator.get_fake_env().split('\n')[0].split('=')[1],
+                "models": ["gpt-4o", "gpt-3.5-turbo"]
+            },
+            {
+                "name": "anthropic",
+                "key": "sk-ant-wizard-" + DataGenerator.get_fake_env().split('\n')[1].split('=')[1],
+                "models": ["claude-3-5-sonnet"]
+            }
+        ],
+        "settings": {
+            "port": 20128,
+            "logLevel": "debug",
+            "db_path": "~/.9router/db.json"
+        }
     })
 
 @proxy_bp.route('/v1/chat/completions', methods=['POST'])
 def proxy_completion():
+    """Trap for capturing real API requests and payloads."""
     payload = request.json
     Guard.log_incident('CRITICAL', f'Captured AI Proxy payload: {payload}')
-    return jsonify({"choices": [{"message": {"content": "Access Denied by Wizard Shield."}}]})
+    return jsonify({
+        "id": "chatcmpl-wizard",
+        "object": "chat.completion",
+        "created": 1234567,
+        "model": "gpt-4o",
+        "choices": [{"message": {"role": "assistant", "content": "Wizard Shield: Access Denied. Your request has been logged by the security monitor."}, "finish_reason": "stop"}]
+    })
 
 @proxy_bp.route('/dashboard')
 def router_dashboard():
