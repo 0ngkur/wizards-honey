@@ -6,6 +6,13 @@ import os
 app = Flask(__name__)
 app.secret_key = "".join([os.urandom(8).hex() for _ in range(3)])
 
+@app.after_request
+def add_custom_headers(response):
+    """Simulate 9router server identity."""
+    response.headers['Server'] = '9router/0.3.47'
+    response.headers['X-Frame-Options'] = 'DENY'
+    return response
+
 # Middleware for security monitoring
 @app.before_request
 def monitor_requests():
@@ -71,6 +78,46 @@ def login():
         Guard.log_incident('HIGH', f'Authentication attempt: {user}:{pwd}')
         return render_template('login.html', error="Invalid credentials or account locked.")
     return render_template('login.html')
+
+# --- 9router Emulation Layer ---
+
+@app.route('/api/auth/status')
+def router_auth_status():
+    """Vulnerable endpoint for CVE-2026-5842 emulation."""
+    return jsonify({
+        "authenticated": False,
+        "mode": "proxy-only",
+        "version": "0.3.47",
+        "bypass_allowed": True  # The 'reward' for the exploit seeker
+    })
+
+@app.route('/api/config')
+def router_config():
+    """Bait configuration file leakage."""
+    return jsonify({
+        "providers": [
+            {
+                "name": "openai",
+                "key": "sk-proj-4j..." + "X" * 20,
+                "models": ["gpt-4o", "gpt-3.5-turbo"]
+            },
+            {
+                "name": "anthropic",
+                "key": "sk-ant-...".join(["a01", "b02", "c03"]),
+                "models": ["claude-3-5-sonnet"]
+            }
+        ],
+        "settings": {
+            "port": 8080,
+            "logLevel": "debug",
+            "db_path": "~/.9router/db.json"
+        }
+    })
+
+@app.route('/dashboard')
+def router_dashboard():
+    """9router-specific dashboard bait."""
+    return render_template('9router_dash.html')
 
 if __name__ == '__main__':
     # Running in debug mode creates a more 'vulnerable' look for hackers

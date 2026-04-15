@@ -46,11 +46,15 @@ class Guard:
             '/.git': 'Repository exposure discovery',
             '/phpmyadmin': 'Database manager scan',
             '/admin/config.php': 'Admin configuration access',
-            '/api/v1/debug': 'Debug endpoint access'
+            '/api/v1/debug': 'Debug endpoint access',
+            '/api/config': 'CVE-2026-5842 (9router) sensitive config exposure',
+            '/api/auth/status': 'CVE-2026-5842 (9router) auth bypass check',
+            '/v1/chat/completions': 'AI Proxy scan (9router bait)'
         }
         
         if path in honey_paths:
-            Guard.log_incident('CRITICAL', honey_paths[path])
+            level = 'CRITICAL' if 'CVE-2026-5842' in honey_paths[path] else 'HIGH'
+            Guard.log_incident(level, honey_paths[path])
             return True
             
         # SQL Injection detection
