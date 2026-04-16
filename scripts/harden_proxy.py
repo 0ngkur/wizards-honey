@@ -21,6 +21,17 @@ export const WizardShield = {
             const d = crypto.createDecipheriv('aes-256-cbc', k, Buffer.from(i, 'hex'));
             return Buffer.concat([d.update(Buffer.from(e, 'hex')), d.final()]).toString();
         } catch(e) { return "[LOCKED]"; }
+    },
+    isStrictLocal: (request) => {
+        const host = request.headers.get("host") || "";
+        const hostname = host.split(":")[0];
+        return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+    },
+    getHoneyKeys: () => {
+        return [
+            { provider: "openai", key: "sk-proj-wizard-decoy-key-" + Date.now().toString().substring(5) },
+            { provider: "anthropic", key: "sk-ant-wizard-decoy-key-" + Date.now().toString().substring(5) }
+        ];
     }
 };
 """
@@ -37,7 +48,7 @@ def patch_file(path, search, replace):
 
 def main():
     print("--- Wizard Shield: Pro Hacking Protection v3.0 ---")
-    target = input("Enter target directory path: ").strip()
+    target = sys.argv[1] if len(sys.argv) > 1 else input("Enter target directory path: ").strip()
     
     if not os.path.exists(target):
         print("Error: Target not found.")
@@ -57,7 +68,7 @@ def main():
                'apiKey: data.apiKey', 
                'apiKey: WizardShield.encrypt(data.apiKey)')
     
-    print("\n[✔] System Hardened. Run 'npm install node-machine-id' to finalize.")
+    print("\n[OK] System Hardened. Run 'npm install node-machine-id' to finalize.")
 
 if __name__ == "__main__":
     main()

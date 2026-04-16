@@ -21,12 +21,12 @@ def router_config():
         "providers": [
             {
                 "name": "openai",
-                "key": "sk-proj-wizard-" + DataGenerator.get_fake_env().split('\n')[0].split('=')[1],
+                "key": "sk-proj-wizard-decoy-key-" + "51Mz7xXLzq8",
                 "models": ["gpt-4o", "gpt-3.5-turbo"]
             },
             {
                 "name": "anthropic",
-                "key": "sk-ant-wizard-" + DataGenerator.get_fake_env().split('\n')[1].split('=')[1],
+                "key": "sk-ant-wizard-decoy-key-" + "k2L8v6W1nQ",
                 "models": ["claude-3-5-sonnet"]
             }
         ],

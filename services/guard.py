@@ -55,20 +55,31 @@ class Guard:
         if path in honey_paths:
             level = 'CRITICAL' if 'CVE-2026-5842' in honey_paths[path] else 'HIGH'
             Guard.log_incident(level, honey_paths[path])
-            return True
             
         # SQL Injection detection
         query = request.query_string.decode('utf-8').lower()
         if any(key in query for key in ["' OR '1'='1", "union select", "drop table"]):
             Guard.log_incident('HIGH', f'Potential SQL Injection in query: {query}')
-            return True
             
         # AI Payload Inspection (DPI)
         if request.is_json and path.startswith('/v1/'):
             data = request.get_json()
-            # Detect potential local file inclusion or key exfiltration strings in prompts
             content_str = str(data).lower()
-            if any(p in content_str for p in ["id_rsa", "passwd", "config.json", "/etc/"]):
+            
+            # DPI Patterns
+            dpi_patterns = {
+                "jailbreak": ["ignore previous instructions", "dan", "do anything now", "system prompt"],
+                "lfi": ["/etc/passwd", "/etc/shadow", "../", "..\\", "c:\\windows"],
+                "exfiltration": ["id_rsa", "aws_access_key_id", "sk-ant", "sk-proj"]
+            }
+            
+            for category, patterns in dpi_patterns.items():
+                if any(p in content_str for p in patterns):
+                    Guard.log_incident('CRITICAL', f'DPI Alert [{category.upper()}]: Malicious payload detected - {content_str[:100]}...')
+                    return True
+
+            # Legacy Fallback
+            if any(p in content_str for p in ["config.json"]):
                 Guard.log_incident('CRITICAL', f'AI Prompt Injection / Data Exfiltration detected: {content_str[:100]}...')
                 return True
 

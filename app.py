@@ -1,10 +1,17 @@
 import os
+import argparse
 from flask import Flask, jsonify, Response
 from services.guard import Guard
 from services.generator import DataGenerator
 
+parser = argparse.ArgumentParser(description="Wizard's Honey - Universal Security Suite v3.0")
+parser.add_argument('--mode', choices=['STANDARD', 'PROXY'], default=os.getenv('HONEY_MODE', 'STANDARD').upper(),
+                    help='Operating mode: STANDARD or PROXY')
+parser.add_argument('--port', type=int, default=5000, help='Port to run the honeypot on')
+args, _ = parser.parse_known_args()
+
 # Mode Config: 'STANDARD' or 'PROXY'
-HONEY_MODE = os.getenv('HONEY_MODE', 'STANDARD').upper()
+HONEY_MODE = args.mode
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -41,5 +48,5 @@ def health_check():
     return jsonify({"status": "ok", "mode": HONEY_MODE})
 
 if __name__ == '__main__':
-    print(f"[*] Wizard's Honey starting in {HONEY_MODE} mode...")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    print(f"[*] Wizard's Honey starting in {HONEY_MODE} mode on port {args.port}...")
+    app.run(host='0.0.0.0', port=args.port, debug=True)
